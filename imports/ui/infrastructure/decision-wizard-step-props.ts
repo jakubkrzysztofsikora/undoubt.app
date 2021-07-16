@@ -1,0 +1,1 @@
+export interface DecisionWizardStepProps<TModel> { model: TModel, onChange: (newModelValue: TModel) => void };

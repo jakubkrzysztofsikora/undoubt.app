@@ -2,10 +2,11 @@ import React from 'react';
 
 import { useStickyState } from '../infrastructure/useStickyState';
 import { DecisionWizardStep1Model } from '../domain/decision-wizard-step1-model';
-import { UndoubtSimpleList } from './undoubt-simple-list';
 import { UndoubtTextField } from './undoubt-text-field';
+import { UndoubtAppendableList } from './undoubt-appendable-list';
+import { DecisionWizardStepProps } from '../infrastructure/decision-wizard-step-props';
 
-export const DecisionWizardStep1: React.FC<{model: DecisionWizardStep1Model, onChange: (newModelValue: DecisionWizardStep1Model) => void}> = ({model, onChange}) => {
+export const DecisionWizardStep1: React.FC<DecisionWizardStepProps<DecisionWizardStep1Model>> = ({model, onChange}) => {
     const [possibleChoice, setPossibleChoice] = useStickyState('', 'decision_wizard_1_possible_choice');
     const onDecisionNameChange = React.useCallback((value: string) => {
         onChange({...model, decisionName: value});
@@ -20,7 +21,13 @@ export const DecisionWizardStep1: React.FC<{model: DecisionWizardStep1Model, onC
 
     return <div>
         <UndoubtTextField label='Decision name' value={model.decisionName} onChange={onDecisionNameChange} required />
-        <UndoubtTextField label='Enter possible choice' value={possibleChoice} onChange={setPossibleChoice} onEnter={onChoicesChange} />
-        <UndoubtSimpleList elements={model.choices} onDelete={onChoicesDelete} />
+        <UndoubtAppendableList
+            label='Enter possible choice'
+            currentElements={model.choices}
+            elementToBeAdded={possibleChoice}
+            onElementAdded={onChoicesChange}
+            onElementDeleted={onChoicesDelete}
+            onElementToBeAddedChange={setPossibleChoice}
+        />
     </div>;
 }

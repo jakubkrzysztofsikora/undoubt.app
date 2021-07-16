@@ -10,13 +10,12 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import React from "react";
 import clsx from "clsx";
 
-import { useStickyState } from "../infrastructure/useStickyState";
 import { ColorlibConnector, useColorlibStepIconStyles, useStyles } from "./decision-wizard.styles";
-import { DecisionWizardNav } from "../components/decision-wizard-nav";
 import { useDecisionWizardSteps } from "./decision-wizard-steps";
-import { useDecisionWizardValidation, ValidationRuleType } from "../infrastructure/decision-wizard-validation-engine";
-import { DecisionWizardStep1Model } from "../domain/decision-wizard-step1-model";
-import { DecisionWizardModel } from "../domain/decision-wizard-model";
+import { DecisionWizardModel } from "../../domain/decision-wizard-model";
+import { useDecisionWizardValidation, ValidationRuleType } from "../../infrastructure/decision-wizard-validation-engine";
+import { useStickyState } from "../../infrastructure/useStickyState";
+import { DecisionWizardNav } from "../../components/decision-wizard-nav";
 
 const ColorlibStepIcon = (props: StepIconProps) => {
     const classes = useColorlibStepIconStyles();
@@ -43,7 +42,7 @@ const ColorlibStepIcon = (props: StepIconProps) => {
 
 
 
-export const DecisionWizard = () => {
+export const DecisionWizard = (props: { onDecisionNameSet: (value: string) => void}) => {
     const [activeStep, setActiveStep] = useStickyState(0, 'activeStep');
     const classes = useStyles();
     const steps = useDecisionWizardSteps();
@@ -57,20 +56,34 @@ export const DecisionWizard = () => {
             type: ValidationRuleType.RequiredField,
             field: (model: DecisionWizardModel) => model.step1.choices,
             step: 0
-        }
+        },
+        {
+            type: ValidationRuleType.RequiredField,
+            field: (model: DecisionWizardModel) => model.step2.stakeholders,
+            step: 1
+        },
+        {
+            type: ValidationRuleType.RequiredField,
+            field: (model: DecisionWizardModel) => model.step2.values,
+            step: 1
+        },
     ], []);
     const wizardModel = React.useMemo(() => ({
         step1: steps.find(x => x.order === 0)?.model,
+        step2: steps.find(x => x.order === 1)?.model,
+        step3: steps.find(x => x.order === 2)?.model
     }), [steps]);
     const validationEngine = useDecisionWizardValidation(wizardModel, validationRules); 
 
-    const handleNext = () => {
+    const handleNext = React.useCallback(() => {
         setActiveStep((prevActiveStep: number) => prevActiveStep + 1);
-    };
+    }, []);
 
-    const handleBack = () => {
+    const handleBack = React.useCallback(() => {
         setActiveStep((prevActiveStep: number) => prevActiveStep - 1);
-    };
+    }, []);
+
+    React.useEffect(() => props.onDecisionNameSet(wizardModel.step1.decisionName), [wizardModel.step1.decisionName])
 
     return <div className={classes.wizard}>
         <Stepper alternativeLabel activeStep={activeStep} connector={<ColorlibConnector />}>
